@@ -1,7 +1,6 @@
 using backend_assignment.Data;
 using backend_assignment.Dtos;
 using backend_assignment.Mappers;
-using backend_assignment.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,9 +14,15 @@ public class QuestionController(AppDbContext context) : ControllerBase
 
   // GET: api/Question/5
   [HttpGet("{id}")]
-  public async Task<ActionResult<QuestionDto>> GetQuestion(int id)
+  public ActionResult<QuestionDto> GetQuestion(int id)
   {
-    var question = await _context.Questions.FindAsync(id);
+    var question = _context
+      .Questions.Include(q => q.FirstAnswer)
+      .Include(q => q.SecondAnswer)
+      .Include(q => q.ThirdAnswer)
+      .Include(q => q.FourthAnswer)
+      .ToList()
+      .Find(q => q.Id == id);
 
     if (question == null)
     {

@@ -12,9 +12,13 @@ public static class QuestionMapper
       Id = q.Id,
       Content = q.Content,
       FirstAnswerId = q.FirstAnswerId,
+      FirstAnswer = q.FirstAnswer.Content,
       SecondAnswerId = q.SecondAnswerId,
+      SecondAnswer = q.SecondAnswer.Content,
       ThirdAnswerId = q.ThirdAnswerId,
+      ThirdAnswer = q.ThirdAnswer.Content,
       FourthAnswerId = q.FourthAnswerId,
+      FourthAnswer = q.FourthAnswer.Content,
     };
   }
 }
