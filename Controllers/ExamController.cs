@@ -1,7 +1,9 @@
+using backend_assignment.Data;
+using backend_assignment.Dtos;
+using backend_assignment.Mappers;
+using backend_assignment.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using backend_assignment.Data;
-using backend_assignment.Models;
 
 namespace backend_assignment.Controllers;
 
@@ -9,35 +11,55 @@ namespace backend_assignment.Controllers;
 [ApiController]
 public class ExamController(AppDbContext context) : ControllerBase
 {
-    private readonly AppDbContext _context = context;
+  private readonly AppDbContext _context = context;
 
-    // GET: api/Exam
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Exam>>> GetExams()
+  // GET: api/Exam
+  [HttpGet]
+  public async Task<ActionResult<IEnumerable<Exam>>> GetExams()
+  {
+    return await _context.Exams.ToListAsync();
+  }
+
+  // GET: api/Exam/5
+  [HttpGet("latest")]
+  public async Task<ActionResult<ExamDto>> GetExam()
+  {
+    var exam = await _context.Exams.Include(e => e.QuestionPaper).OrderBy(e => e.Id).LastAsync();
+
+    if (exam == null)
     {
-        return await _context.Exams.ToListAsync();
+      return NotFound();
     }
+    ExamDto dto =
+      new()
+      {
+        Q1Id = exam.QuestionPaper.Q1Id,
+        Q2Id = exam.QuestionPaper.Q2Id,
+        Q3Id = exam.QuestionPaper.Q3Id,
+        Q4Id = exam.QuestionPaper.Q4Id,
+        Q5Id = exam.QuestionPaper.Q5Id,
+      };
+    return dto;
+  }
 
-    // GET: api/Exam/5
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Exam>> GetExam(int id)
+  [HttpGet("{id}")]
+  public ActionResult<ExamDto> GetExam(int id)
+  {
+    var exam = _context.Exams.Include(e => e.QuestionPaper).ToList().Find(e => e.Id == id);
+
+    if (exam == null)
     {
-        var exam = await _context.Exams.FindAsync(id);
-
-        if (exam == null)
-        {
-            return NotFound();
-        }
-
-        return exam;
+      return NotFound();
     }
-
-    [HttpPost]
-    public async Task<ActionResult<Exam>> PostExam(Exam exam)
-    {
-        _context.Exams.Add(exam);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction("GetExam", new { id = exam.Id }, exam);
-    }
+    ExamDto dto =
+      new()
+      {
+        Q1Id = exam.QuestionPaper.Q1Id,
+        Q2Id = exam.QuestionPaper.Q2Id,
+        Q3Id = exam.QuestionPaper.Q3Id,
+        Q4Id = exam.QuestionPaper.Q4Id,
+        Q5Id = exam.QuestionPaper.Q5Id,
+      };
+    return dto;
+  }
 }
