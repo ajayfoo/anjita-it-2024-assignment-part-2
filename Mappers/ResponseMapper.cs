@@ -11,6 +11,7 @@ public static class ResponseMapper
     {
       Id = r.Id,
       StudentId = r.StudentId,
+      ExamId = r.ExamId,
       Q1AnswerId = r.Q1AnswerId,
       Q2AnswerId = r.Q2AnswerId,
       Q3AnswerId = r.Q3AnswerId,
@@ -25,6 +26,7 @@ public static class ResponseMapper
       new()
       {
         StudentId = dto.StudentId,
+        ExamId = dto.ExamId,
         Q1AnswerId = dto.Q1AnswerId,
         Q2AnswerId = dto.Q2AnswerId,
         Q3AnswerId = dto.Q3AnswerId,

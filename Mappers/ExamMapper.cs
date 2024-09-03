@@ -9,6 +9,7 @@ public static class ExamMapper
   {
     return new()
     {
+      Id = e.Id,
       Q1Id = e.QuestionPaper.Q1Id,
       Q2Id = e.QuestionPaper.Q2Id,
       Q3Id = e.QuestionPaper.Q3Id,

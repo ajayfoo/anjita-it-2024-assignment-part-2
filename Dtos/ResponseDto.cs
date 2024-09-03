@@ -3,6 +3,7 @@ namespace backend_assignment.Dtos;
 public class ResponseDto
 {
   public int? Id { get; set; }
+  public int ExamId { get; set; }
   public int StudentId { get; set; }
   public int? Q1AnswerId { get; set; }
   public int? Q2AnswerId { get; set; }
