@@ -3,6 +3,6 @@ namespace backend_assignment.Models;
 public class Exam
 {
     public int Id { get; set; }
-    public QuestionPaper? QuestionPaper { get; set; }
-    public Response[] Responses { get; set; } = [];
+    public QuestionPaper QuestionPaper { get; set; } = null!;
+    public Response[] Responses { get; set; } = null!;
 }

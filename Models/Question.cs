@@ -3,10 +3,10 @@ namespace backend_assignment.Models;
 public class Question
 {
     public int Id { get; set; }
-    public string? Content { get; set; }
-    public Answer? FirstAnswer { get; set; }
-    public Answer? SecondAnswer { get; set; }
-    public Answer? ThirdAnswer { get; set; }
-    public Answer? FourthAnswer { get; set; }
-    public Answer? CorrectAnswer { get; set; }
+    public string Content { get; set; } = null!;
+    public Answer FirstAnswer { get; set; } = null!;
+    public Answer SecondAnswer { get; set; } = null!;
+    public Answer ThirdAnswer { get; set; } = null!;
+    public Answer FourthAnswer { get; set; } = null!;
+    public Answer CorrectAnswer { get; set; } = null!;
 }
