@@ -9,13 +9,12 @@ public class UserController(AppDbContext context) : ControllerBase
 {
     private readonly AppDbContext _context = context;
     // POST: api/User
-    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-    [HttpPost]
-    public async Task<ActionResult<User>> PostUser(User user)
+    [HttpPut]
+    public async Task<ActionResult<Student>> PutUser(Student student)
     {
-        _context.Users.Add(user);
+        _context.Students.Add(student);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction("GetUser", new { id = user.Id }, user);
+        return CreatedAtAction("GetStudent", new { id = student.Id }, student);
     }
 }
