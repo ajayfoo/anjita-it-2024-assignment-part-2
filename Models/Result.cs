@@ -3,6 +3,7 @@ namespace backend_assignment.Models;
 public class Result
 {
     public int Id { get; set; }
+    public int ExamId { get; set; }
     public Exam Exam { get; set; } = null!;
     public Student Student { get; set; } = null!;
     public int Score { get; set; }
