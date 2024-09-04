@@ -23,16 +23,16 @@ public class ResponseController(AppDbContext context) : ControllerBase
     return CreatedAtAction("GetResponse", new { id = response.Id }, response);
   }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Response>> GetResponse(int id)
+  [HttpGet("{id}")]
+  public async Task<ActionResult<Response>> GetResponse(int id)
+  {
+    var response = await _context.Responses.FindAsync(id);
+
+    if (response == null)
     {
-        var response = await _context.Responses.FindAsync(id);
-
-        if (response == null)
-        {
-            return NotFound();
-        }
-
-        return response;
+      return NotFound();
     }
+
+    return response;
+  }
 }
