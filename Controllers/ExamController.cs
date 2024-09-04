@@ -11,6 +11,12 @@ namespace backend_assignment.Controllers;
 [ApiController]
 public class ExamController(AppDbContext context) : ControllerBase
 {
+  public class Score
+  {
+    public required int Obtained { get; set; }
+    public required int Max { get; set; }
+  }
+
   private readonly AppDbContext _context = context;
 
   // GET: api/Exam
@@ -47,7 +53,7 @@ public class ExamController(AppDbContext context) : ControllerBase
     return exam.ToExamDto();
   }
 
-  private static Tuple<int, int> ScoreAndMax(Response response, QuestionPaper paper)
+  private static Score GetScoreFrom(Response response, QuestionPaper paper)
   {
     int score = 0;
     if (response.Q1AnswerId == paper.Q1.CorrectAnswerId)
@@ -71,14 +77,23 @@ public class ExamController(AppDbContext context) : ControllerBase
       ++score;
     }
     int max = 5;
-    return new Tuple<int, int>(score, max);
+    return new() { Obtained = score, Max = max };
   }
 
   [HttpPost("latest/responses/{id}")]
-  public async Task<ActionResult<Tuple<int, int>>> SubmitResponse(int id)
+  public async Task<ActionResult<Score>> SubmitResponse(int id)
   {
     var latestExam = await _context
       .Exams.Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q1)
+      .Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q2)
+      .Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q3)
+      .Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q4)
+      .Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q5)
       .Include(e => e.Responses)
       .OrderBy(e => e.Id)
       .LastAsync();
@@ -86,12 +101,14 @@ public class ExamController(AppDbContext context) : ControllerBase
     {
       return NotFound();
     }
-    var targetResponse = await _context.Responses.FirstOrDefaultAsync(r => r.Id == id);
+    var targetResponse = await _context
+      .Responses.Include(r => r.Q1Answer)
+      .FirstOrDefaultAsync(r => r.Id == id);
     _ = latestExam.Responses.Append(new() { Id = id });
     if (targetResponse == null)
     {
       return NotFound();
     }
-    return ScoreAndMax(targetResponse, latestExam.QuestionPaper);
+    return GetScoreFrom(targetResponse, latestExam.QuestionPaper);
   }
 }
