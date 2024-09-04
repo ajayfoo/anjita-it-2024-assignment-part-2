@@ -12,16 +12,33 @@ public class StudentController(AppDbContext context) : ControllerBase
 {
   private readonly AppDbContext _context = context;
 
-  // POST: api/Student
+  private async Task InitStudentSession(Student student)
+  {
+    Exam latestExam = await _context.Exams.OrderBy(e => e.Id).LastAsync();
+    Response response =
+      new()
+      {
+        Student = student,
+        StudentId = student.Id,
+        Exam = latestExam,
+        ExamId = latestExam.Id,
+      };
+    await _context.Responses.AddAsync(response);
+    await _context.SaveChangesAsync();
+    var session = new StudentSession() { ResponseId = response.Id };
+    await _context.StudentSessions.AddAsync(session);
+    await _context.SaveChangesAsync();
+    var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(1), HttpOnly = true };
+    Response.Cookies.Append("emailId", student.EmailId, cookieOptions);
+    Response.Cookies.Append("studentSessionId", session.Id.ToString(), cookieOptions);
+  }
+
   [HttpPut]
   public async Task<ActionResult<string>> PutStudent(Student student)
   {
     _context.Entry(student).State = student.Id == 0 ? EntityState.Added : EntityState.Modified;
     await _context.SaveChangesAsync();
-    var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(1), Path = "/" };
-    Response.Cookies.Append("emailId", student.EmailId, cookieOptions);
-    cookieOptions.HttpOnly = true;
-    Response.Cookies.Append("studentId", student.Id.ToString(), cookieOptions);
+    await InitStudentSession(student);
     return "/question";
   }
 

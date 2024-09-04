@@ -16,6 +16,7 @@ public class ResponseController(AppDbContext context) : ControllerBase
   [HttpPut]
   public async Task<ActionResult<Response>> PutResponse(ResponseDto responseDto)
   {
+    Console.WriteLine(Response.Cookies);
     Response response = responseDto.ToResponse();
     _context.Entry(response).State = response.Id == 0 ? EntityState.Added : EntityState.Modified;
     await _context.SaveChangesAsync();

@@ -7,12 +7,24 @@ const getQuestion = async (id) => {
   const question = await response.json();
   return question;
 }
+
+const putAndGetCurrentResponse = async (id) => {
+  const response = await fetch('/api/Response', {
+    method: 'PUT',
+  })
+  const json = await response.json();
+  console.log(json)
+  return json;
+};
+
 const createAnswerElement = (answerId, answer) => {
   const answerEle = document.createElement('section')
   answerEle.classList.add('field')
   const radio = document.createElement('input')
   radio.type = 'radio'
   radio.id = answerId;
+  radio.value = answerId;
+  radio.name = 'answer'
 
   const label = document.createElement('label')
   label.textContent = answer;
