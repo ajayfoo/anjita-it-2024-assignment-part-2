@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
   public DbSet<Response> Responses { get; set; } = null!;
   public DbSet<Exam> Exams { get; set; } = null!;
   public DbSet<Result> Results { get; set; } = null!;
+  public DbSet<Score> Scores { get; set; } = null!;
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -48,5 +49,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     modelBuilder.Entity<QuestionPaper>().HasData([initialQuestionPaper]);
     Exam exam = new() { Id = 1, QuestionPaperId = initialQuestionPaper.Id };
     modelBuilder.Entity<Exam>().HasData(exam);
+    modelBuilder.Entity<Score>().HasIndex(s => s.StudentSessionId).IsUnique();
   }
 }

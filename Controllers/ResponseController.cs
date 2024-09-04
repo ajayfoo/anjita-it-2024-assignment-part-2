@@ -1,4 +1,3 @@
-using System.Drawing.Printing;
 using backend_assignment.Data;
 using backend_assignment.Dtos;
 using backend_assignment.Mappers;
@@ -73,15 +72,11 @@ public class ResponseController(AppDbContext context) : ControllerBase
     }
   }
 
-  private async Task<Question?> UpdateResponseAndGetNextQuestion(int answerId)
+  private async Task<Question?> UpdateResponseAndGetNextQuestion(
+    int answerId,
+    Response currentResponse
+  )
   {
-    int studentSessionId = int.Parse(Request.Cookies["studentSessionId"] ?? "");
-    StudentSession? studentSession = await _context.StudentSessions.FindAsync(studentSessionId);
-    if (studentSession == null)
-      return null;
-    Response? currentResponse = await _context.Responses.FirstAsync(r =>
-      r.Id == studentSession.ResponseId
-    );
     if (currentResponse == null)
       return null;
     if (currentResponse.Q1AnswerId == null)
@@ -114,17 +109,110 @@ public class ResponseController(AppDbContext context) : ControllerBase
     return null;
   }
 
+  private static bool AnsweredAllQuestions(Response response)
+  {
+    if (response.Q1AnswerId == null)
+      return false;
+    if (response.Q2AnswerId == null)
+      return false;
+    if (response.Q3AnswerId == null)
+      return false;
+    if (response.Q4AnswerId == null)
+      return false;
+    if (response.Q5AnswerId == null)
+      return false;
+    return true;
+  }
+
   [HttpPut("{answerId}")]
   public async Task<ActionResult<QuestionDto>> PutResponse(int answerId)
   {
-    Console.WriteLine("$$$$$$$$$$$$ Other Current Question is null $$$$$$$$$$");
-    Question? nextQuestion = await UpdateResponseAndGetNextQuestion(answerId);
+    int studentSessionId = int.Parse(Request.Cookies["studentSessionId"] ?? "");
+    StudentSession? studentSession = await _context.StudentSessions.FindAsync(studentSessionId);
+    if (studentSession == null)
+      return NotFound();
+    Response? currentResponse = await _context.Responses.FirstAsync(r =>
+      r.Id == studentSession.ResponseId
+    );
+    if (currentResponse == null)
+      return NotFound();
+    Score? score = null;
+    if (AnsweredAllQuestions(currentResponse))
+    {
+      score = await SubmitResponseAndGetScore(currentResponse);
+      if (score == null)
+      {
+        return StatusCode(500);
+      }
+      score.StudentSessionId = studentSessionId;
+      _context.Scores.Add(score);
+      await _context.SaveChangesAsync();
+      return RedirectToRoutePermanent(
+        new
+        {
+          controller = "Result",
+          action = "RenderPage",
+          score,
+        }
+      );
+    }
+    Question? nextQuestion = await UpdateResponseAndGetNextQuestion(answerId, currentResponse);
     if (nextQuestion == null)
     {
       Console.WriteLine("Current Question is null");
       return StatusCode(500);
     }
     return nextQuestion.ToQuestionDto();
+  }
+
+  private static Score GetScoreFrom(Response response, QuestionPaper paper)
+  {
+    int score = 0;
+    if (response.Q1AnswerId == paper.Q1.CorrectAnswerId)
+    {
+      ++score;
+    }
+    if (response.Q2AnswerId == paper.Q2.CorrectAnswerId)
+    {
+      ++score;
+    }
+    if (response.Q3AnswerId == paper.Q3.CorrectAnswerId)
+    {
+      ++score;
+    }
+    if (response.Q4AnswerId == paper.Q4.CorrectAnswerId)
+    {
+      ++score;
+    }
+    if (response.Q5AnswerId == paper.Q5.CorrectAnswerId)
+    {
+      ++score;
+    }
+    int max = 5;
+    return new() { Obtained = score, Max = max };
+  }
+
+  public async Task<Score?> SubmitResponseAndGetScore(Response response)
+  {
+    var latestExam = await _context
+      .Exams.Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q1)
+      .Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q2)
+      .Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q3)
+      .Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q4)
+      .Include(e => e.QuestionPaper)
+      .ThenInclude(e => e.Q5)
+      .Include(e => e.Responses)
+      .OrderBy(e => e.Id)
+      .LastAsync();
+    if (latestExam == null)
+    {
+      return null;
+    }
+    return GetScoreFrom(response, latestExam.QuestionPaper);
   }
 
   [HttpGet("{id}")]
