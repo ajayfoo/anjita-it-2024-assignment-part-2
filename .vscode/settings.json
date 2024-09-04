@@ -1,5 +1,7 @@
 {
-
+  "[javascript]": {
+  "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
   "[csharp]": {
   "editor.defaultFormatter": "csharpier.csharpier-vscode"
   },
