@@ -9,13 +9,15 @@ public class ResultPageModel(AppDbContext context) : PageModel
 {
   private readonly AppDbContext _context = context;
 
-  public IList<Question> Questions { get; set; } = default!;
+  public Score Score { get; set; } = default!;
 
   public async Task OnGetAsync()
   {
+    int studentSessionId = int.Parse(Request.Cookies["studentSessionId"] ?? "");
+
     if (_context.Questions != null)
     {
-      Questions = await _context.Questions.ToListAsync();
+      Score = await _context.Scores.FirstAsync(s => s.StudentSessionId == studentSessionId);
     }
   }
 }
