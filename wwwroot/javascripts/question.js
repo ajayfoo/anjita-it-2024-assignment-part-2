@@ -8,13 +8,12 @@ const getQuestion = async (id) => {
   return question;
 }
 
-const putAndGetCurrentResponse = async (id) => {
-  const response = await fetch('/api/Response', {
+const putResponseAndGetNextQuestion = async (id) => {
+  const response = await fetch('/api/Response/' + id, {
     method: 'PUT',
   })
-  const json = await response.json();
-  console.log(json)
-  return json;
+  const question = await response.json();
+  return question;
 };
 
 const createAnswerElement = (answerId, answer) => {
@@ -25,6 +24,7 @@ const createAnswerElement = (answerId, answer) => {
   radio.id = answerId;
   radio.value = answerId;
   radio.name = 'answer'
+  radio.required = true;
 
   const label = document.createElement('label')
   label.textContent = answer;
@@ -60,4 +60,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderQuestionOnDOM(question)
   console.log(payload);
   console.log(question);
+})
+
+const mainForm = document.getElementById('main-form')
+mainForm.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const selectedAnswerId = mainForm.elements['answer'].value;
+  console.log(selectedAnswerId)
+  const nextQuestion = await putResponseAndGetNextQuestion(selectedAnswerId)
+  renderQuestionOnDOM(nextQuestion)
 })
