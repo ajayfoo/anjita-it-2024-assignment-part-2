@@ -8,13 +8,10 @@ const getQuestion = async (id) => {
   return question;
 }
 
-const putResponseAndGetNextQuestion = async (id) => {
-  const response = await fetch('/api/Response/' + id, {
+const putResponse = (id) =>
+  fetch('/api/Response/' + id, {
     method: 'PUT',
   })
-  const question = await response.json();
-  return question;
-};
 
 const createAnswerElement = (answerId, answer) => {
   const answerEle = document.createElement('section')
@@ -67,6 +64,11 @@ mainForm.addEventListener('submit', async (e) => {
   e.preventDefault()
   const selectedAnswerId = mainForm.elements['answer'].value;
   console.log(selectedAnswerId)
-  const nextQuestion = await putResponseAndGetNextQuestion(selectedAnswerId)
+  const response = await putResponse(selectedAnswerId)
+  if (response.redirected) {
+    location.replace(response.url);
+    return;
+  }
+  const nextQuestion = await response.json();
   renderQuestionOnDOM(nextQuestion)
 })

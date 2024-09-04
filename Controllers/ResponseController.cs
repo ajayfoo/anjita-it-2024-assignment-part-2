@@ -106,7 +106,7 @@ public class ResponseController(AppDbContext context) : ControllerBase
     else
       currentResponse.Q5AnswerId ??= answerId;
     await _context.SaveChangesAsync();
-    return null;
+    return await GetQuestionNo(5, currentResponse.ExamId);
   }
 
   private static bool AnsweredAllQuestions(Response response)
@@ -128,39 +128,39 @@ public class ResponseController(AppDbContext context) : ControllerBase
   public async Task<ActionResult<QuestionDto>> PutResponse(int answerId)
   {
     int studentSessionId = int.Parse(Request.Cookies["studentSessionId"] ?? "");
+
     StudentSession? studentSession = await _context.StudentSessions.FindAsync(studentSessionId);
     if (studentSession == null)
       return NotFound();
+
     Response? currentResponse = await _context.Responses.FirstAsync(r =>
       r.Id == studentSession.ResponseId
     );
     if (currentResponse == null)
       return NotFound();
-    Score? score = null;
-    if (AnsweredAllQuestions(currentResponse))
-    {
-      score = await SubmitResponseAndGetScore(currentResponse);
-      if (score == null)
-      {
-        return StatusCode(500);
-      }
-      score.StudentSessionId = studentSessionId;
-      _context.Scores.Add(score);
-      await _context.SaveChangesAsync();
-      return RedirectToRoutePermanent(
-        new
-        {
-          controller = "Result",
-          action = "RenderPage",
-          score,
-        }
-      );
-    }
+
     Question? nextQuestion = await UpdateResponseAndGetNextQuestion(answerId, currentResponse);
     if (nextQuestion == null)
     {
       Console.WriteLine("Current Question is null");
       return StatusCode(500);
+    }
+    if (AnsweredAllQuestions(currentResponse))
+    {
+      Score? score = await SubmitResponseAndGetScore(currentResponse);
+      if (score == null)
+      {
+        return StatusCode(500);
+      }
+      score.StudentSessionId = studentSessionId;
+      bool exists = await _context.Scores.AnyAsync(s => s.StudentSessionId == studentSessionId);
+      if (!exists)
+      {
+        _context.Scores.Add(score);
+        await _context.SaveChangesAsync();
+      }
+      Response.Headers.Location = "/Result";
+      return StatusCode(303);
     }
     return nextQuestion.ToQuestionDto();
   }
@@ -192,7 +192,7 @@ public class ResponseController(AppDbContext context) : ControllerBase
     return new() { Obtained = score, Max = max };
   }
 
-  public async Task<Score?> SubmitResponseAndGetScore(Response response)
+  private async Task<Score?> SubmitResponseAndGetScore(Response response)
   {
     var latestExam = await _context
       .Exams.Include(e => e.QuestionPaper)

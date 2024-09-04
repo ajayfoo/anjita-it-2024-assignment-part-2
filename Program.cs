@@ -1,5 +1,4 @@
 using backend_assignment.Data;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddRazorPages();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 var connectionString = builder.Configuration.GetConnectionString("Main");
@@ -46,4 +46,6 @@ app.MapGet(
     return Results.File("pages/index.html", "text/html");
   }
 );
+app.MapRazorPages();
+
 app.Run();
