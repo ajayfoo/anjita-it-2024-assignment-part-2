@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using backend_assignment.Data;
 using backend_assignment.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +14,15 @@ public class StudentController(AppDbContext context) : ControllerBase
 
   // POST: api/Student
   [HttpPut]
-  public async Task<ActionResult<Student>> PutStudent(Student student)
+  public async Task<ActionResult<string>> PutStudent(Student student)
   {
     _context.Entry(student).State = student.Id == 0 ? EntityState.Added : EntityState.Modified;
     await _context.SaveChangesAsync();
     var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddDays(1), Path = "/" };
     Response.Cookies.Append("emailId", student.EmailId, cookieOptions);
-    return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, student);
+    cookieOptions.HttpOnly = true;
+    Response.Cookies.Append("studentId", student.Id.ToString(), cookieOptions);
+    return "/question";
   }
 
   [HttpGet("{id}")]

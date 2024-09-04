@@ -46,12 +46,4 @@ app.MapGet(
     return Results.File("pages/index.html", "text/html");
   }
 );
-app.MapPost(
-  "/",
-  (HttpContext context) =>
-  {
-    Console.WriteLine(context.Request.Form["email"]);
-    context.Response.Redirect("/question");
-  }
-);
 app.Run();
